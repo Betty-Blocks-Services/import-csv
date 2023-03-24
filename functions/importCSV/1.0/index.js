@@ -298,7 +298,7 @@ const importCsv = async ({
 
     if (recordsToUpdate && recordsToUpdate.length > 0) {
       if (logging) {
-        console.log("Records to update: " + recordsToCreate.length);
+        console.log("Records to update: " + recordsToUpdate.length);
         console.log(
           `Collection to Update: ${
             recordsToUpdate.length
