@@ -74,8 +74,14 @@ const getAllRecords = async (gqlQuery, skip, take, results) => {
     take: take,
   });
   if (gqlResponse) {
-    const gqlQueryObject = Object.values(gqlResponse)[0];
-    const tmpResults = Object.values(gqlQueryObject)[0];
+    const gqlQueryObject = Object.values(gqlResponse)[0]; // the data object
+    const tmpResults = Object.values(gqlQueryObject)[0]; // the all query object which contains the result and totalcount
+
+    if (tmpResults.totalCount > 20000)
+      throwError(
+        "The number of records to update is too large. Please split your import file into smaller files."
+      );
+
     skip += take;
     if (tmpResults.results.length) {
       const newResults = [...results, ...tmpResults.results];
@@ -84,10 +90,8 @@ const getAllRecords = async (gqlQuery, skip, take, results) => {
         results = await getAllRecords(gqlQuery, skip, take, results);
       }
     }
-    return results;
-  } else {
-    return [];
   }
+  return results;
 };
 
 const processRecords = async (
@@ -167,7 +171,6 @@ const processRecords = async (
       }
     }
   });
-
   return { recordsToUpdate: recordsToUpdate, recordsToCreate: recordsToCreate };
 };
 
@@ -236,9 +239,7 @@ const importCsv = async ({
       const gqlQueryWithWhere = gqlQuery.replace("$where", whereFilter);
       allCurrentRecords = await getAllRecords(gqlQueryWithWhere, 0, 200, []);
       if (logging) {
-        console.log(
-          `Number of retrieved records from the database: ${allCurrentRecords.length}`
-        );
+        console.log(`Retrieved records count: ${allCurrentRecords.length}`);
       }
     }
 
@@ -253,17 +254,20 @@ const importCsv = async ({
       uniqueRecordIdentifier
     );
     if (logging) {
-      console.log("Finished pre-save actions for the CSV records");
+      console.log("Finished preparing the CSV records for saving");
     }
     const { recordsToCreate } = processedRecords;
     const { recordsToUpdate } = processedRecords;
 
     if (recordsToCreate && recordsToCreate.length > 0) {
       if (logging) {
-        console.log("Number of records to create: " + recordsToCreate.length);
+        console.log("Records to create: " + recordsToCreate.length);
         console.log(
-          "New Records to create (collection, first 2000 characters): " +
-            JSON.stringify(recordsToCreate).substring(0, 2000)
+          `Collection to create: ${
+            recordsToCreate.length
+          } items (showing the first 2000 characters): ${JSON.stringify(
+            recordsToCreate
+          ).substring(0, 2000)}`
         );
       }
       const createQuery = `
@@ -288,12 +292,13 @@ const importCsv = async ({
 
       if (createdData && logging) {
         const createdIdsCol = Object.values(createdData)[0];
-        console.log("Created records: " + createdIdsCol.length);
+        console.log("Finished creating " + createdIdsCol.length + " records");
       }
     }
 
     if (recordsToUpdate && recordsToUpdate.length > 0) {
       if (logging) {
+        console.log("Records to update: " + recordsToCreate.length);
         console.log(
           `Collection to Update: ${
             recordsToUpdate.length
@@ -318,7 +323,7 @@ const importCsv = async ({
 
       if (updatedData && logging) {
         const updatedIdsCol = Object.values(updatedData)[0];
-        console.log("Updated records: " + updatedIdsCol.length);
+        console.log("Finished updating " + updatedIdsCol.length + " records");
       }
     }
 
