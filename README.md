@@ -27,7 +27,7 @@ The value column contains the database name of your property (snake_case)<br />
 example:
 
 ### FORMAT MAPPING FOR CSV COLUMNS:
-![image](https://user-images.githubusercontent.com/96063344/227200633-9e87659f-f47e-48c4-b406-9b26a0972f80.png)
+![image](https://user-images.githubusercontent.com/96063344/227590135-1bdb92e3-08c4-4a99-a71d-3935d4ffc741.png)
 
 A key/value combination to allow you to specify if a column is a checkbox or a specific date format.<br />
 Text, number, decimal fields will all work out of the box and should not be included here.<br />
@@ -35,7 +35,8 @@ Text, number, decimal fields will all work out of the box and should not be incl
 The key column specifies the CSV column name.<br />
 The value column specifies either the word checkbox or a specific date format.<br />
 We use the formats defined by the date-fns package and the specifics can be found here: https://date-fns.org/v2.16.1/docs/format<br />
-Make sure a mapping exists for each of your date columsn in the CSV, otherwise the column will not be imported correctly.
+Make sure a mapping exists for each of your date columsn in the CSV, otherwise the column will not be imported correctly.<br />
+See the limitations below for the supported patterns.
 
 example:
 
@@ -86,3 +87,6 @@ The versions of the used packages, can be found in the package.json file.
 - No relational data can be imported.
 - At the time of this writing Betty Blocks NextGen actions have a maximum runtime of 60 seconds.<br />This function (and any other functions in your action) need to complete within 60 seconds.<br />
   To make sure the import does not exceed this 60 seconds time limit, the action funciton will impose limits on the number of records it can create and a limit for the number of records it can update (for updates the function also needs to retrieve the data first, which causes overhead).
+- Time properties have not been tested and are currently not supported.
+- The date-fns format patterns which have been tested include:  yyyy (year), dd (day in 2 digits), MM (month in 2 digits), HH (hours), mm (minutes), ss (seconds). 
+- AM/PM times in date time properties are currently NOT supported.  
