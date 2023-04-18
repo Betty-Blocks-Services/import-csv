@@ -51,6 +51,12 @@ If selected, make sure you enter the UNIQUE RECORD IDENTIFIER option.<br />
 
 Specify the column name (from your CSV file) which uniquely identify your records.
 
+### UNIQUE RECORD TYPE
+![image](https://user-images.githubusercontent.com/96063344/232803057-0051661c-d364-4ce0-bf73-fd93879ba95a.png)
+
+Specify the property type of the unique record propert typey. Current supported types are: Id, Text, Number or Decimal property types. 
+Please make sure you enter this when selecting deduplication.
+
 ### UPDATE CSV MAPPING FOR EXISTING RECORDS (LEAVE EMPTY TO USE DEFAULT):
 ![image](https://user-images.githubusercontent.com/96063344/227200906-b10a21ac-4ced-48b4-ae49-a3add274cf7f.png)
 
