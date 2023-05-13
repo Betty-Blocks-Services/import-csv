@@ -10,8 +10,8 @@ With the deduplication option you can prevent duplicate records based on a colum
 ### URL TO THE CSV FILE:
 ![image](https://user-images.githubusercontent.com/96063344/227200202-98752469-b186-4e11-8033-d6a923d455b1.png)
 
-Specify an URL to your CSV file. This can be a static public reachable URL or a variable from a file property of a record.
-The file will be checked for the mime type of the file and the current accepted mime-types are: text/csv, text/x-csv, application/x-csv, application/csv, text/x-comma-separated-values, text/comma-separated-values. Note, not all of these have mime-types have been properly tested. All test have been done with files with the mime-type of "text/csv".  
+Specify an URL to your CSV file. This can be a static public reachable URL or a variable from a file property of a record.<br />
+The file will be checked for the mime type of the file and the current accepted mime-types are:<br /> text/csv, text/x-csv, application/x-csv, application/csv, text/x-comma-separated-values, text/comma-separated-values.<br />Note, not all of these have mime-types have been properly tested. All test have been done with files with the mime-type of "text/csv". <br /> 
 
 ### IMPORT MODEL:
 ![image](https://user-images.githubusercontent.com/96063344/227200400-48686778-9c22-4d61-970d-0961973887ef.png)
@@ -23,7 +23,8 @@ Specify the model in which the CSV records will be imported.
 
 A key/value combination that allows you to map your CSV column names to the properties of the selected model.<br />
 The key column contains the (exact) column name of your CSV file.<br />
-The value column contains the database name of your property (snake_case)<br />
+The value column contains the database name of your property (snake_case).<br />
+For belong to relations you can use model.property (in snake_case) combination.<br />
 
 example:
 
@@ -91,7 +92,7 @@ The versions of the used packages, can be found in the package.json file.
 
 ## Limitations
 
-- No relational data can be imported.
+- Limited support for relational data (belongs to relations only).
 - At the time of this writing Betty Blocks NextGen actions have a maximum runtime of 60 seconds.<br />This function (and any other functions in your action) need to complete within 60 seconds.<br />
   To make sure the import does not exceed this 60 seconds time limit, the action funciton will impose limits on the number of records it can create and a limit for the number of records it can update (for updates the function also needs to retrieve the data first, which causes overhead).
 - Time properties have not been tested and are currently not supported.
