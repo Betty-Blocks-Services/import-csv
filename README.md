@@ -56,7 +56,7 @@ Specify the column name (from your CSV file) which uniquely identify your record
 ### UNIQUE RECORD TYPE
 ![image](https://user-images.githubusercontent.com/96063344/232803057-0051661c-d364-4ce0-bf73-fd93879ba95a.png)
 
-Specify the property type of the unique record propert typey. Current supported types are: Id, Text, Number or Decimal property types. 
+Specify the property type of the unique record property type. Current supported types are: Id, Text, Number or Decimal property types. 
 Please make sure you enter this when selecting deduplication.
 
 ### UPDATE CSV MAPPING FOR EXISTING RECORDS (LEAVE EMPTY TO USE DEFAULT):
@@ -65,10 +65,30 @@ Please make sure you enter this when selecting deduplication.
 Same principle as the CSV MAPPING, but these mappings will only be used for existing records. For new records the CSV MAPPING options will be used.<br />
 This should be left empty if you do not want to distinct the columns to import between creates and updates.
 
+### TURN ON BATCHED PROCESSING FOR THE IMPORT
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/df4c5306-6b29-45c5-b0bd-9f816ea131e6)
+
+When on, the system will use multiple calls (batches) for processing the import and store the progress in the model/properties selected below. This can be useful if you have huge amounts of data and the import can't finish in a single run.
+
+### THE MODEL IN WHICH WE STORE THE BATCH SIZE AND CURRENT OFFSET.
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/899683ff-ac4d-4f1b-a95a-e5c00b908f13)
+
+### THE (NUMBER) PROPERTY TO STORE THE SIZE OF EACH BATCH.
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/8644c183-b231-4c93-8844-4655f7901cff)
+
+### BATCH SIZE (NUMBER OF RECORDS TO PROCESS IN A BATCH).
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/5306af99-5470-4e30-9680-1c9b06d42686)
+
+### THE (NUMBER) PROPERTY TO STORE THE OFFEST WHILE RUNNING THE IMPORT.
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/8981da78-50cc-4a70-bc48-1ce8660e501d)
+
+### THE (TEXT) PROPERTY TO STORE THE FILE NAME TO UNIQUELY IDENTIFY THIS IMPORT.
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/96096206-de5e-4176-aa70-f47c8ab142c5)
+
 ### TURN ON LOGGING FOR THIS ACTION:
 ![image](https://user-images.githubusercontent.com/96063344/227200968-a8898a64-1ae9-4c19-b84e-9d82456b02eb.png)
 
-When selected, debug information will be logged to the logs.
+When selected, debug information will be logged into the logs.
 
 ### RESULT:
 ![image](https://user-images.githubusercontent.com/96063344/227201040-034a15b3-c7af-4745-a19b-55a1b5583da9.png)
@@ -84,7 +104,7 @@ The output of this action function could be used by other action functions or as
 
 This action function uses the following packages:
 
-- https://www.npmjs.com/package/papaparse
+~~- https://www.npmjs.com/package/papaparse~~ in v2.2 papaparse has been replaced by our internal helper function parseData.
 - https://www.npmjs.com/package/date-fns
 - https://www.npmjs.com/package/lodash
 
@@ -94,7 +114,7 @@ The versions of the used packages, can be found in the package.json file.
 
 - Limited support for relational data (belongs to relations only).
 - At the time of this writing Betty Blocks NextGen actions have a maximum runtime of 60 seconds.<br />This function (and any other functions in your action) need to complete within 60 seconds.<br />
-  To make sure the import does not exceed this 60 seconds time limit, the action funciton will impose limits on the number of records it can create and a limit for the number of records it can update (for updates the function also needs to retrieve the data first, which causes overhead).
+  If the import does not exceed this 60 seconds time limit, turn on batched processed, so that you run the same action multiple times and the step will continue processing from the moment the action timed-out previously.
 - Time properties have not been tested and are currently not supported.
 - The date-fns format patterns which have been tested include:  yyyy (year), dd (day in 2 digits), MM (month in 2 digits), HH (hours), mm (minutes), ss (seconds). 
 - AM/PM times in date time properties are currently NOT supported.  
