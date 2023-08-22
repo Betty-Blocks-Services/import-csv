@@ -10,8 +10,8 @@ With the deduplication option you can prevent duplicate records based on a colum
 ### URL TO THE CSV FILE:
 ![image](https://user-images.githubusercontent.com/96063344/227200202-98752469-b186-4e11-8033-d6a923d455b1.png)
 
-Specify an URL to your CSV file. This can be a static public reachable URL or a variable from a file property of a record.<br />
-The file will be checked for the mime type of the file and the current accepted mime-types are:<br /> text/csv, text/x-csv, application/x-csv, application/csv, text/x-comma-separated-values, text/comma-separated-values.<br />Note, not all of these have mime-types have been properly tested. All test have been done with files with the mime-type of "text/csv". <br /> 
+Specify an URL to your CSV file. This can be a static public reachable URL or a text variable from a file property of a record (you can use the expression step to retrieve the URL of a file property).<br />
+
 
 ### IMPORT MODEL:
 ![image](https://user-images.githubusercontent.com/96063344/227200400-48686778-9c22-4d61-970d-0961973887ef.png)
