@@ -440,11 +440,11 @@ const processRecords = async (
 ) => {
   let allCurrentRecords = [];
   let loggingMessage = `Finished batch ${batchOffset + 1} ( records: ${
-    (batchOffset + 1) * batchSize
+    batchOffset * batchSize
   } to ${
     importRecords.length < (batchOffset + 1) * batchSize
-      ? importRecords.length
-      : (batchOffset + 1) * batchSize
+      ? (batchOffset + 1) * batchSize
+      : (batchOffset + 1) * batchSize - importRecords.length
   })`;
 
   const csvFormattedRecords = formatCSVRecordValues(
@@ -558,7 +558,7 @@ const processRecords = async (
     const createdIdsCol = Object.values(createdData)[0];
     if (!batched)
       console.log("Finished creating " + createdIdsCol.length + " records");
-    else loggingMessage += ` - new records: ${createdIdsCol.length}`;
+    else loggingMessage += ` New: ${createdIdsCol.length}`;
   }
 
   if (recordsToUpdate && recordsToUpdate.length > 0) {
@@ -589,7 +589,7 @@ const processRecords = async (
       const updatedIdsCol = Object.values(updatedData)[0];
       if (!batched)
         console.log("Finished updating " + updatedIdsCol.length + " records");
-      else loggingMessage += ` - updated records: ${updatedIdsCol.length}`;
+      else loggingMessage += ` Updated: ${updatedIdsCol.length}`;
     }
   }
 
@@ -616,16 +616,25 @@ const importCsv = async ({
   propertyMappingsUpdate,
   propertyFormatMappings,
   batched,
-  batchModel: { name: batchModelName },
+  batchModel,
   batchSize,
-  batchSizeProperty: [{ name: batchSizePropertyName }],
-  batchOffsetProperty: [{ name: batchOffsetPropertyName }],
-  batchFileNameProperty: [{ name: batchFilePropertyName }],
+  batchSizeProperty,
+  batchOffsetProperty,
+  batchFileNameProperty,
   logging,
 }) => {
   try {
+    const batchModelName = batchModel ? batchModel.name : null;
+    const batchSizePropertyName = batchSizeProperty
+      ? batchSizeProperty[0].name
+      : null;
+    const batchOffsetPropertyName = batchOffsetProperty
+      ? batchOffsetProperty[0].name
+      : null;
+    const batchFilePropertyName = batchFileNameProperty
+      ? batchFileNameProperty[0].name
+      : null;
     let importRecords = [];
-
     if (csvUrl) importRecords = await getRecordsFromCSV(csvUrl, logging);
     else throwError("No CSV import URL found.");
     if (logging) {
