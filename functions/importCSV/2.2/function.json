@@ -89,10 +89,7 @@
     },
     {
       "meta": {
-        "type": "Model",
-        "validations": {
-          "required": true
-        }
+        "type": "Model"
       },
       "name": "batchModel",
       "label": "The model in which we store the batch size and current offset.",
