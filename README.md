@@ -106,7 +106,7 @@ When selected, debug information will be logged into the logs.
 
 ### VALIDATE REQUIRED COLUMNS
 
-When set to true, add a _ after the name in the KEY fields of the CSV Mapping to the columns that you would like to validate as required (for example firstName_).
+When set to true, add a \* after the name in the KEY fields of the CSV Mapping to the columns that you would like to validate as required (for example firstName\*).
 
 ### RESULT:
 
