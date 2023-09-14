@@ -639,7 +639,7 @@ const importCsv = async ({
     let cleanPropertyMappings = [];
     for (let i = 0; i < propertyMappings.length; i++) {
       const propertyMap = propertyMappings[i];
-      if (propertyMap.key === "key" && propertyMap.value.endsWith("*")) {
+      if (propertyMap.value.endsWith("*")) {
         propertyMap.value = propertyMap.value.slice(0, -1); // Remove the last character (the asterisk)
       }
       cleanPropertyMappings.push(propertyMap);
