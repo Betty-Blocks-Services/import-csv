@@ -1,7 +1,7 @@
 # Import CSV.
 
-This function can be used to import the contents of a CSV file into Betty Blocks.<br />
-You can map column names from the CSV to properties in your model.<br />
+This function can be used to import the contents of a CSV file into a Betty Blocks application.<br />
+You can map column names from the CSV to properties in your data model.<br />
 You can specify different CSV columns to database property mappings for new records or updated records.<br />
 With the deduplication option you can prevent duplicate records based on a column name of your CSV file with the unique value of the records.
 
@@ -17,7 +17,7 @@ Specify an URL to your CSV file. This can be a static public reachable URL or a 
 
 ![image](https://user-images.githubusercontent.com/96063344/227200400-48686778-9c22-4d61-970d-0961973887ef.png)
 
-Specify the model in which the CSV records will be imported.
+Specify the data model in which the CSV records will be imported.
 
 ### CSV MAPPING:
 
@@ -26,7 +26,7 @@ Specify the model in which the CSV records will be imported.
 A key/value combination that allows you to map your CSV column names to the properties of the selected model.<br />
 The key column contains the (exact) column name of your CSV file.<br />
 The value column contains the database name of your property (snake_case).<br />
-For belong to relations you can use model.property (in snake_case) combination.<br />
+For belongs-to relations you can use model.property (in snake_case) combination.<br />
 
 example:
 
@@ -34,13 +34,13 @@ example:
 
 ![image](https://user-images.githubusercontent.com/96063344/227590135-1bdb92e3-08c4-4a99-a71d-3935d4ffc741.png)
 
-A key/value combination to allow you to specify if a column is a checkbox or a specific date format.<br />
-Text, number, decimal fields will all work out of the box and should not be included here.<br />
+A key/value combination to allow you to specify if a column is a checkbox, decimal, number or a specific date format.<br />
+Text fields will all work out of the box and should not be included here.<br />
 
 The key column specifies the CSV column name.<br />
-The value column specifies either the word checkbox or a specific date format.<br />
-We use the formats defined by the date-fns package and the specifics can be found here: https://date-fns.org/v2.16.1/docs/format<br />
-Make sure a mapping exists for each of your date columsn in the CSV, otherwise the column will not be imported correctly.<br />
+The value column specifies either the word "checkbox", "decimal", "number" or a specific date format.<br />
+We use the formats defined by the date-fns package and the specifications can be found here: https://date-fns.org/v2.16.1/docs/format<br />
+Make sure a mapping exists for each of your date columns in the CSV, otherwise the column will not be imported correctly.<br />
 See the limitations below for the supported patterns.
 
 example:
@@ -49,7 +49,7 @@ example:
 
 ![image](https://user-images.githubusercontent.com/96063344/227200721-31d1812b-87aa-4529-9768-ac4441ff872d.png)
 
-This toggle will determine if the CSV records will be matched to records inside Betty Blocks.<br />
+This toggle will determine if the CSV records will be matched to records inside your Betty Blocks application.<br />
 If selected, make sure you enter the UNIQUE RECORD IDENTIFIER option.<br />
 
 ### UNIQUE RECORD IDENTIFIER (CSV COLUMN NAME):
