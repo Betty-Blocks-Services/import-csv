@@ -23,19 +23,23 @@ const splitArray = (arr, size) => {
 };
 
 const getImportLines = async (fileUrl, logging) => {
+  let data = [];
   const startTime = now();
+  const { buffer, type } = await (await fetch(fileUrl)).blob();
+  const isCsv = type === "text/comma-separated-values";
 
-  const data = await (await fetch(fileUrl)).blob().buffer;
-  const workbook = read(data, { raw: true });
-  const worksheet = utils.sheet_to_json(
-    workbook.Sheets[workbook.SheetNames[0]]
-  );
+  if (isCsv) {
+    data = await parseData({ data: fileUrl, format: "CSV" });
+  } else {
+    const workbook = read(buffer, { raw: true, dense: true });
+    data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+  }
 
   if (logging) {
     console.log(`Retrieved the import file in: ${now() - startTime} ms`);
   }
 
-  return worksheet;
+  return data;
 };
 
 const formatImportLineValues = (
