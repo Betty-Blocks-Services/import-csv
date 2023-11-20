@@ -1,6 +1,6 @@
 {
   "description": "This function allows you to import the contents of a CSV or XLS(X) file into a specific model",
-  "label": "Import File",
+  "label": "Import CSV/XLS(X)",
   "category": "Misc",
   "icon": {
     "color": "Orange",
@@ -16,6 +16,25 @@
           "required": true
         }
       }
+    },
+    {
+      "info": "Enter the type of the import file. In general, the size of a CSV file can be larger than an XLS(X) file because an Excel spreadsheet also stores additional meta-data.",
+      "label": "Import file type",
+      "meta": {
+        "type": "Select",
+        "default": "csv",
+        "values": [
+          {
+            "label": "Comma-separated values (CSV)",
+            "value": "csv"
+          },
+          {
+            "label": "Excel spreadsheet (XLS or XLSX)",
+            "value": "xlsx"
+          }
+        ]
+      },
+      "name": "fileType"
     },
     {
       "meta": {

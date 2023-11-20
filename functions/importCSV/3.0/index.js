@@ -22,15 +22,14 @@ const splitArray = (arr, size) => {
   return result;
 };
 
-const getImportLines = async (fileUrl, logging) => {
+const getImportLines = async (fileUrl, fileType, logging) => {
   let data = [];
   const startTime = now();
-  const { buffer, type } = await (await fetch(fileUrl)).blob();
-  const isCsv = type === "text/comma-separated-values";
 
-  if (isCsv) {
+  if (fileType === "csv") {
     data = await parseData({ data: fileUrl, format: "CSV" });
   } else {
+    const { buffer } = await (await fetch(fileUrl)).blob();
     const workbook = read(buffer, { raw: true, dense: true });
     data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
   }
@@ -445,6 +444,7 @@ const processImportLines = async (
 
 const importFile = async ({
   fileUrl,
+  fileType,
   model: { name: modelName },
   uniqueRecordColumnName,
   uniqueRecordColumnType,
@@ -481,7 +481,7 @@ const importFile = async ({
       }
       cleanPropertyMappings.push(propertyMap);
     }
-    if (fileUrl) importLines = await getImportLines(fileUrl, logging);
+    if (fileUrl) importLines = await getImportLines(fileUrl, fileType, logging);
     else throwError("No import URL found.");
     if (logging) {
       console.log(`Lines in import file: ${importLines.length}`);
