@@ -48,8 +48,16 @@
       "info": "The model you want to import the data into."
     },
     {
+      "name": "relationMappings",
+      "label": "Relation mapping",
+      "info": "KEY = database name of the relation, VALUE = ID of the relational record.",
+      "meta": {
+        "type": "Map"
+      }
+    },
+    {
       "name": "propertyMappings",
-      "label": "Import Mapping",
+      "label": "Import mapping",
       "info": "KEY = import column name, VALUE = database name (in snake_case) of the property.",
       "meta": {
         "type": "Map"

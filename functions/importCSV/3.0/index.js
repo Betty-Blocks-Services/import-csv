@@ -103,6 +103,7 @@ const prepareImportLines = async (
   existingRecords,
   uniqueRecordColumnName,
   deduplicate,
+  relationMappings,
   propertyMappings,
   propertyMappingsUpdate,
   uniqueRecordIdentifier,
@@ -116,6 +117,11 @@ const prepareImportLines = async (
     const updateObj = {};
 
     if (propertyMappings.length > 0) {
+      relationMappings.forEach((mapping) => {
+        importObj[mapping.key] = mapping.value;
+        updateObj[mapping.key] = mapping.value;
+      });
+
       propertyMappings.forEach((mapping) => {
         if (mapping.isRelation) {
           const relationalLookupData = relationLookupData.find(
@@ -268,6 +274,7 @@ const getRelationLookupData = async (
 const processImportLines = async (
   importLines,
   propertyMappingMain,
+  relationMappings,
   propertyMappings,
   propertyMappingsFormat,
   propertyMappingsUpdateSpecific,
@@ -353,6 +360,7 @@ const processImportLines = async (
     allCurrentRecords,
     uniqueRecordColumnName,
     deduplicate,
+    relationMappings,
     propertyMappingMain,
     propertyMappingsUpdateSpecific,
     uniqueRecordIdentifier,
@@ -452,6 +460,7 @@ const importFile = async ({
   propertyMappings,
   propertyMappingsUpdate,
   propertyMappingsFormat,
+  relationMappings,
   batched,
   batchModel,
   batchSize,
@@ -598,6 +607,7 @@ const importFile = async ({
         const result = await processImportLines(
           importLinesToCreateInBatches[i],
           propertyMappingMain,
+          relationMappings,
           cleanPropertyMappings,
           propertyMappingsFormat,
           propertyMappingsUpdateSpecific,
@@ -628,6 +638,7 @@ const importFile = async ({
       await processImportLines(
         importLines,
         propertyMappingMain,
+        relationMappings,
         cleanPropertyMappings,
         propertyMappingsFormat,
         propertyMappingsUpdateSpecific,
