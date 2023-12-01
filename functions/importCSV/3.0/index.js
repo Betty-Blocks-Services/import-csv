@@ -48,52 +48,50 @@ const formatImportLineValues = (
 ) => {
   return importLinesToSanitize.map((importLine) => {
     // convert import values to database acceptable formats for text, decimal, number, date, date/time, time, decimal and checkbox properties
-    if (propertyMappingsFormat && propertyMappingsFormat.length > 0) {
-      propertyMappings.forEach((mapping) => {
-        propertyMappingsFormat.forEach((formatMapping) => {
-          if (mapping.key === formatMapping.key && importLine[mapping.key]) {
-            switch (formatMapping.value.toLowerCase().trim()) {
-              case "text":
-                importLine[mapping.key] = `${importLine[mapping.key]}`;
-                break;
-              case "decimal":
-                // if there is no dot notation, fix this by adding the .00
-                const sanitizedDecimalValue = importLine[mapping.key]
-                  .toString()
-                  .replace(",", ".");
-                if (!isNaN(parseFloat(sanitizedDecimalValue))) {
-                  if (sanitizedDecimalValue.indexOf(".") === -1)
-                    importLine[mapping.key] = sanitizedDecimalValue + ".00";
-                  else {
-                    importLine[mapping.key] = parseFloat(sanitizedDecimalValue)
-                      .toFixed(2)
-                      .toString();
-                  }
-                } else {
-                  importLine[mapping.key] = "";
+    propertyMappings.forEach((mapping) => {
+      propertyMappingsFormat.forEach((formatMapping) => {
+        if (mapping.key === formatMapping.key && importLine[mapping.key]) {
+          switch (formatMapping.value.toLowerCase().trim()) {
+            case "text":
+              importLine[mapping.key] = `${importLine[mapping.key]}`;
+              break;
+            case "decimal":
+              // if there is no dot notation, fix this by adding the .00
+              const sanitizedDecimalValue = importLine[mapping.key]
+                .toString()
+                .replace(",", ".");
+              if (!isNaN(parseFloat(sanitizedDecimalValue))) {
+                if (sanitizedDecimalValue.indexOf(".") === -1)
+                  importLine[mapping.key] = sanitizedDecimalValue + ".00";
+                else {
+                  importLine[mapping.key] = parseFloat(sanitizedDecimalValue)
+                    .toFixed(2)
+                    .toString();
                 }
-                break;
-              case "number":
-                if (isNaN(parseFloat(importLine[mapping.key]))) {
-                  importLine[mapping.key] = "";
-                }
-                break;
-              case "checkbox":
-                importLine[mapping.key] = convertToBoolean(
-                  importLine[mapping.key]
-                );
-                break;
-              default: // date/time formats
-                importLine[mapping.key] = convertToDBDateFormat(
-                  importLine[mapping.key],
-                  formatMapping.value.trim()
-                );
-                break;
-            }
+              } else {
+                importLine[mapping.key] = "";
+              }
+              break;
+            case "number":
+              if (isNaN(parseFloat(importLine[mapping.key]))) {
+                importLine[mapping.key] = "";
+              }
+              break;
+            case "checkbox":
+              importLine[mapping.key] = convertToBoolean(
+                importLine[mapping.key]
+              );
+              break;
+            default: // date/time formats
+              importLine[mapping.key] = convertToDBDateFormat(
+                importLine[mapping.key],
+                formatMapping.value.trim()
+              );
+              break;
           }
-        });
+        }
       });
-    }
+    });
     return importLine;
   });
 };
@@ -103,7 +101,7 @@ const prepareImportLines = async (
   existingRecords,
   uniqueRecordColumnName,
   deduplicate,
-  relationMappings,
+  defaultMappings,
   propertyMappings,
   propertyMappingsUpdate,
   uniqueRecordIdentifier,
@@ -116,62 +114,59 @@ const prepareImportLines = async (
     const importObj = {};
     const updateObj = {};
 
-    if (propertyMappings.length > 0) {
-      relationMappings.forEach((mapping) => {
-        importObj[mapping.key] = mapping.value;
-        updateObj[mapping.key] = mapping.value;
-      });
+    defaultMappings.forEach((mapping) => {
+      const dbName = snakeToCamel(mapping.key);
+      importObj[dbName] = mapping.value;
+      updateObj[dbName] = mapping.value;
+    });
 
-      propertyMappings.forEach((mapping) => {
-        if (mapping.isRelation) {
-          const relationalLookupData = relationLookupData.find(
-            (item) => item.relationImportName === mapping.key
+    propertyMappings.forEach((mapping) => {
+      if (mapping.isRelation) {
+        const relationalLookupData = relationLookupData.find(
+          (item) => item.relationImportName === mapping.key
+        );
+        if (relationalLookupData) {
+          const { records } = relationalLookupData;
+          const relationObject = records.find(
+            (element) => element[mapping.value] == importLine[mapping.key]
           );
-          if (relationalLookupData) {
-            const { records } = relationalLookupData;
-            const relationObject = records.find(
-              (element) => element[mapping.value] == importLine[mapping.key]
-            );
 
-            if (relationObject) {
-              importObj[mapping.relationName] = relationObject.id;
-            } else {
-              importObj[mapping.relationName] = {};
-            }
-          }
-        } else {
-          importObj[mapping.value] = importLine[mapping.key];
-        }
-      });
-
-      if (propertyMappingsUpdate.length > 0) {
-        propertyMappingsUpdate.forEach((mapping) => {
-          updateObj[mapping.value] = importLine[mapping.key];
-        });
-      }
-
-      if (deduplicate) {
-        if (importLine[uniqueRecordColumnName] !== "") {
-          const existingRecord = existingRecords.find(
-            (record) =>
-              record[uniqueRecordIdentifier.value].toString() ===
-              importLine[uniqueRecordIdentifier.key].toString()
-          );
-          if (existingRecord) {
-            if (propertyMappingsUpdate.length > 0) {
-              updateObj.id = existingRecord.id;
-              recordsToUpdate.push(updateObj);
-            } else {
-              importObj.id = existingRecord.id;
-              recordsToUpdate.push(importObj);
-            }
+          if (relationObject) {
+            importObj[mapping.relationName] = relationObject.id;
           } else {
-            recordsToCreate.push(importObj);
+            importObj[mapping.relationName] = {};
           }
         }
       } else {
-        recordsToCreate.push(importObj);
+        importObj[mapping.value] = importLine[mapping.key];
       }
+    });
+
+    propertyMappingsUpdate.forEach((mapping) => {
+      updateObj[mapping.value] = importLine[mapping.key];
+    });
+
+    if (deduplicate) {
+      if (importLine[uniqueRecordColumnName] !== "") {
+        const existingRecord = existingRecords.find(
+          (record) =>
+            record[uniqueRecordIdentifier.value].toString() ===
+            importLine[uniqueRecordIdentifier.key].toString()
+        );
+        if (existingRecord) {
+          if (propertyMappingsUpdate.length > 0) {
+            updateObj.id = existingRecord.id;
+            recordsToUpdate.push(updateObj);
+          } else {
+            importObj.id = existingRecord.id;
+            recordsToUpdate.push(importObj);
+          }
+        } else {
+          recordsToCreate.push(importObj);
+        }
+      }
+    } else {
+      recordsToCreate.push(importObj);
     }
   });
   return { recordsToUpdate, recordsToCreate };
@@ -274,7 +269,7 @@ const getRelationLookupData = async (
 const processImportLines = async (
   importLines,
   propertyMappingMain,
-  relationMappings,
+  defaultMappings,
   propertyMappings,
   propertyMappingsFormat,
   propertyMappingsUpdateSpecific,
@@ -360,7 +355,7 @@ const processImportLines = async (
     allCurrentRecords,
     uniqueRecordColumnName,
     deduplicate,
-    relationMappings,
+    defaultMappings,
     propertyMappingMain,
     propertyMappingsUpdateSpecific,
     uniqueRecordIdentifier,
@@ -457,10 +452,10 @@ const importFile = async ({
   uniqueRecordColumnName,
   uniqueRecordColumnType,
   deduplicate,
-  propertyMappings,
-  propertyMappingsUpdate,
-  propertyMappingsFormat,
-  relationMappings,
+  propertyMappings = [],
+  propertyMappingsUpdate = [],
+  propertyMappingsFormat = [],
+  defaultMappings = [],
   batched,
   batchModel,
   batchSize,
@@ -607,7 +602,7 @@ const importFile = async ({
         const result = await processImportLines(
           importLinesToCreateInBatches[i],
           propertyMappingMain,
-          relationMappings,
+          defaultMappings,
           cleanPropertyMappings,
           propertyMappingsFormat,
           propertyMappingsUpdateSpecific,
@@ -638,7 +633,7 @@ const importFile = async ({
       await processImportLines(
         importLines,
         propertyMappingMain,
-        relationMappings,
+        defaultMappings,
         cleanPropertyMappings,
         propertyMappingsFormat,
         propertyMappingsUpdateSpecific,
