@@ -30,8 +30,15 @@ const getImportLines = async (fileUrl, fileType, logging) => {
     data = await parseData({ data: fileUrl, format: "CSV" });
   } else {
     const { buffer } = await (await fetch(fileUrl)).blob();
-    const workbook = read(buffer, { raw: true, dense: true });
-    data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+    const workbook = read(buffer, {
+      raw: true,
+      dense: true,
+      cellDates: true,
+      dateNF: "DD-MM-YYYY;@",
+    });
+    data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {
+      raw: false,
+    });
   }
 
   if (logging) {
