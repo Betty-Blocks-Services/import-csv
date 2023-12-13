@@ -1,12 +1,18 @@
 import { now } from "lodash";
 import { read, utils } from "xlsx/xlsx.mjs";
 import { createOne, updateOne, deleteOne } from "../../utils/mutations";
-import { getOne, getAll } from "../../utils/queries";
+import {
+  getOne,
+  getAll,
+  getGQLIntrospection,
+  authenticateOnDataApi,
+} from "../../utils/queries";
 import {
   snakeToCamel,
   convertToDBDateFormat,
   convertToBoolean,
   throwError,
+  gqlIntroSpectionToDBSchema,
 } from "../../utils/helpers";
 
 const splitArray = (arr, size) => {
@@ -30,15 +36,8 @@ const getImportLines = async (fileUrl, fileType, logging) => {
     data = await parseData({ data: fileUrl, format: "CSV" });
   } else {
     const { buffer } = await (await fetch(fileUrl)).blob();
-    const workbook = read(buffer, {
-      raw: true,
-      dense: true,
-      cellDates: true,
-      dateNF: "DD-MM-YYYY;@",
-    });
-    data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {
-      raw: false,
-    });
+    const workbook = read(buffer, { raw: true, dense: true, cellDates: true });
+    data = utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
   }
 
   if (logging) {
@@ -51,7 +50,8 @@ const getImportLines = async (fileUrl, fileType, logging) => {
 const formatImportLineValues = (
   importLinesToSanitize,
   propertyMappings,
-  propertyMappingsFormat
+  propertyMappingsFormat,
+  importModelProperties
 ) => {
   return importLinesToSanitize.map((importLine) => {
     // convert import values to database acceptable formats for text, decimal, number, date, date/time, time, decimal and checkbox properties
@@ -63,6 +63,7 @@ const formatImportLineValues = (
               importLine[mapping.key] = `${importLine[mapping.key]}`;
               break;
             case "decimal":
+            case "price":
               // if there is no dot notation, fix this by adding the .00
               const sanitizedDecimalValue = importLine[mapping.key]
                 .toString()
@@ -92,7 +93,8 @@ const formatImportLineValues = (
             default: // date/time formats
               importLine[mapping.key] = convertToDBDateFormat(
                 importLine[mapping.key],
-                formatMapping.value.trim()
+                formatMapping.value.trim(),
+                importModelProperties[mapping.value].type
               );
               break;
           }
@@ -288,7 +290,8 @@ const processImportLines = async (
   batchOffset,
   startTime,
   logging,
-  modelName
+  modelName,
+  importModelProperties
 ) => {
   let allCurrentRecords = [];
   let loggingMessage = `Finished batch ${batchOffset + 1} (import lines: ${
@@ -298,7 +301,8 @@ const processImportLines = async (
   const formattedImportLines = formatImportLineValues(
     importLines,
     propertyMappings,
-    propertyMappingsFormat
+    propertyMappingsFormat,
+    importModelProperties
   );
 
   const relationLookupData = await getRelationLookupData(
@@ -471,6 +475,10 @@ const importFile = async ({
   batchFileNameProperty,
   logging,
   validateRequiredColumns,
+  apiURL,
+  authProfileId,
+  userName,
+  password,
 }) => {
   try {
     const batchModelName = batchModel ? batchModel.name : null;
@@ -492,6 +500,23 @@ const importFile = async ({
       }
       cleanPropertyMappings.push(propertyMap);
     }
+
+    const bearerToken = await authenticateOnDataApi(
+      apiURL,
+      authProfileId,
+      userName,
+      password,
+      logging
+    );
+
+    const gqlIntrospection = await getGQLIntrospection(apiURL, bearerToken);
+    const datamodels = gqlIntroSpectionToDBSchema(gqlIntrospection);
+
+    const importModelSchema = datamodels.find(
+      (item) => item.name === modelName
+    );
+    const importModelProperties = importModelSchema.properties;
+
     if (fileUrl) importLines = await getImportLines(fileUrl, fileType, logging);
     else throwError("No import URL found.");
     if (logging) {
@@ -621,7 +646,8 @@ const importFile = async ({
           i,
           now(),
           logging,
-          modelName
+          modelName,
+          importModelProperties
         );
 
         if (result) {
@@ -652,7 +678,8 @@ const importFile = async ({
         0,
         now(),
         logging,
-        modelName
+        modelName,
+        importModelProperties
       );
     }
     return {

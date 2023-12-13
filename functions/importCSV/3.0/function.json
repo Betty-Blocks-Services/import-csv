@@ -8,6 +8,50 @@
   },
   "options": [
     {
+      "name": "apiURL",
+      "label": "dataAPI url",
+      "meta": {
+        "type": "Text",
+        "validations": {
+          "required": true
+        }
+      },
+      "info": "This URL can be found when using the 'Test run' button and clicking on 'Go to playground' on your action."
+    },
+    {
+      "name": "authProfileId",
+      "label": "Authentication profile id used for authenticating the user",
+      "meta": {
+        "type": "Text",
+        "validations": {
+          "required": true
+        }
+      },
+      "info": "This is the identifier of the authentication profile you are logging into for retrieval of import model database schema. This can be found as the last part of the url when opening this profile via Tools/Authentication profiles."
+    },
+    {
+      "name": "userName",
+      "label": "User name, used for retrieval of the import model database schema",
+      "meta": {
+        "type": "Text",
+        "validations": {
+          "required": true
+        }
+      },
+      "info": "This is the username of the person you want to login with, for retrieval of the import model database schema."
+    },
+    {
+      "name": "password",
+      "label": "Password, used for retrieval of the import model database schema",
+      "meta": {
+        "type": "Text",
+        "validations": {
+          "required": true
+        }
+      },
+      "info": "This is the password of the person you want to login with, for retrieval of the import model database schema."
+    },
+    {
       "name": "fileUrl",
       "label": "URL to the import file",
       "meta": {
