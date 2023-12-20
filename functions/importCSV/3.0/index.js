@@ -1,18 +1,12 @@
 import { now } from "lodash";
 import { read, utils } from "xlsx/xlsx.mjs";
 import { createOne, updateOne, deleteOne } from "../../utils/mutations";
-import {
-  getOne,
-  getAll,
-  getGQLIntrospection,
-  authenticateOnDataApi,
-} from "../../utils/queries";
+import { getOne, getAll } from "../../utils/queries";
 import {
   snakeToCamel,
   convertToDBDateFormat,
   convertToBoolean,
   throwError,
-  gqlIntroSpectionToDBSchema,
 } from "../../utils/helpers";
 
 const splitArray = (arr, size) => {
@@ -50,15 +44,16 @@ const getImportLines = async (fileUrl, fileType, logging) => {
 const formatImportLineValues = (
   importLinesToSanitize,
   propertyMappings,
-  propertyMappingsFormat,
-  importModelProperties
+  propertyMappingsFormat
 ) => {
   return importLinesToSanitize.map((importLine) => {
     // convert import values to database acceptable formats for text, decimal, number, date, date/time, time, decimal and checkbox properties
     propertyMappings.forEach((mapping) => {
       propertyMappingsFormat.forEach((formatMapping) => {
         if (mapping.key === formatMapping.key && importLine[mapping.key]) {
-          switch (formatMapping.value.toLowerCase().trim()) {
+          const formatArray = formatMapping.value.trim().split(",");
+
+          switch (formatArray[0]) {
             case "text":
               importLine[mapping.key] = `${importLine[mapping.key]}`;
               break;
@@ -91,11 +86,12 @@ const formatImportLineValues = (
               );
               break;
             default: // date/time formats
-              importLine[mapping.key] = convertToDBDateFormat(
-                importLine[mapping.key],
-                formatMapping.value.trim(),
-                importModelProperties[mapping.value].type
-              );
+              if (formatArray)
+                importLine[mapping.key] = convertToDBDateFormat(
+                  importLine[mapping.key],
+                  formatArray[1] ? formatArray[1] : "dd-MM-yyyy",
+                  formatArray[0] ? formatArray[0] : "Date"
+                );
               break;
           }
         }
@@ -290,8 +286,7 @@ const processImportLines = async (
   batchOffset,
   startTime,
   logging,
-  modelName,
-  importModelProperties
+  modelName
 ) => {
   let allCurrentRecords = [];
   let loggingMessage = `Finished batch ${batchOffset + 1} (import lines: ${
@@ -301,8 +296,7 @@ const processImportLines = async (
   const formattedImportLines = formatImportLineValues(
     importLines,
     propertyMappings,
-    propertyMappingsFormat,
-    importModelProperties
+    propertyMappingsFormat
   );
 
   const relationLookupData = await getRelationLookupData(
@@ -475,10 +469,6 @@ const importFile = async ({
   batchFileNameProperty,
   logging,
   validateRequiredColumns,
-  apiURL,
-  authProfileId,
-  userName,
-  password,
 }) => {
   try {
     const batchModelName = batchModel ? batchModel.name : null;
@@ -500,22 +490,6 @@ const importFile = async ({
       }
       cleanPropertyMappings.push(propertyMap);
     }
-
-    const bearerToken = await authenticateOnDataApi(
-      apiURL,
-      authProfileId,
-      userName,
-      password,
-      logging
-    );
-
-    const gqlIntrospection = await getGQLIntrospection(apiURL, bearerToken);
-    const datamodels = gqlIntroSpectionToDBSchema(gqlIntrospection);
-
-    const importModelSchema = datamodels.find(
-      (item) => item.name === modelName
-    );
-    const importModelProperties = importModelSchema.properties;
 
     if (fileUrl) importLines = await getImportLines(fileUrl, fileType, logging);
     else throwError("No import URL found.");
@@ -646,8 +620,7 @@ const importFile = async ({
           i,
           now(),
           logging,
-          modelName,
-          importModelProperties
+          modelName
         );
 
         if (result) {
@@ -678,8 +651,7 @@ const importFile = async ({
         0,
         now(),
         logging,
-        modelName,
-        importModelProperties
+        modelName
       );
     }
     return {
