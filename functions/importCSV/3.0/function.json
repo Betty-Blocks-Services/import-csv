@@ -66,7 +66,7 @@
     {
       "name": "propertyMappingsFormat",
       "label": "Format mapping for import columns (only needed for checkbox, decimal, number and date/time properties)",
-      "info": "KEY = import column name, VALUE = format of the property. Allowed format values: \"checkbox\", \"decimal\", \"number\", \"text\" or date formats. Date formats need to be entered in accordance with the date-fns format (i.e. dd-MM-yyyy or MM/dd/yyyy etc), see https://date-fns.org/v2.16.1/docs/format",
+      "info": "KEY = import column name, VALUE = format of the property. Allowed format values: \"checkbox\", \"decimal\", \"number\", \"text\", \"Date\", \"Time\", or \"Datetime\". For Date/Time/DateTime the notation is as follows: \"Date, <datefns format>\", i.e. \"Date, dd-MM-yyyy\". The format behind the comma needs to be entered in accordance with the date-fns format (i.e. dd-MM-yyyy or MM/dd/yyyy etc), see https://date-fns.org/v2.16.1/docs/format",
       "meta": {
         "type": "Map"
       }
