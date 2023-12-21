@@ -52,8 +52,7 @@ const formatImportLineValues = (
       propertyMappingsFormat.forEach((formatMapping) => {
         if (mapping.key === formatMapping.key && importLine[mapping.key]) {
           const formatArray = formatMapping.value.trim().split(",");
-
-          switch (formatArray[0]) {
+          switch (formatArray[0].toString().toLowerCase()) {
             case "text":
               importLine[mapping.key] = `${importLine[mapping.key]}`;
               break;
