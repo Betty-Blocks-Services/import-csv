@@ -46,7 +46,7 @@ Text fields will all work out of the box and should not be included here.<br />
 The key column specifies the CSV column name.<br />
 The value column specifies either the word "checkbox", "decimal", "number", "Date", "Time", or "Datetime".<br />
 For the date, time and datetime option, you will need to specify how the item is formatted in your file. The notation is as follows:</br>
-Date, <format> or Time, <format>, or Datetime, <format>.</br></br>For example: "Date, dd-MM-yyyy" or "Date, MM/dd/yyyy".</br></br>
+Date, date-fns format or Time, date-fns format, or Datetime, date-fns format.</br></br>For example: "Date, dd-MM-yyyy" or "Date, MM/dd/yyyy".</br></br>
 We use the formats defined by the date-fns package and the specifications can be found here: https://date-fns.org/v2.16.1/docs/format<br />
 Make sure a mapping exists for each of your date columns in the CSV, otherwise the column will not be imported correctly.<br />
 See the limitations below for the supported patterns.
