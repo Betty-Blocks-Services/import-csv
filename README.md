@@ -38,7 +38,7 @@ example:
 
 ### FORMAT MAPPING FOR CSV COLUMNS:
 
-![image](https://user-images.githubusercontent.com/96063344/227590135-1bdb92e3-08c4-4a99-a71d-3935d4ffc741.png)
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/6fb2273a-5518-4ee2-9cab-cd6e1e421b79)
 
 A key/value combination to allow you to specify if a column is a checkbox, decimal, number or a specific date format.<br />
 Text fields will all work out of the box and should not be included here.<br />
