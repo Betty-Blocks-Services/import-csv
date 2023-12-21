@@ -13,6 +13,12 @@ With the deduplication option you can prevent duplicate records based on a colum
 
 Specify an URL to your CSV file. This can be a static public reachable URL or a text variable from a file property of a record (you can use the expression step to retrieve the URL of a file property).<br />
 
+### Import file type
+
+![image](https://github.com/Betty-Services/import-csv/assets/96063344/6c460217-c271-409f-bfc3-d33bf1099057)
+
+Enter the type of the import file. In general, the size of a CSV file can be larger than an XLS(X) file because an Excel spreadsheet also stores additional meta-data.
+
 ### IMPORT MODEL:
 
 ![image](https://user-images.githubusercontent.com/96063344/227200400-48686778-9c22-4d61-970d-0961973887ef.png)
@@ -38,12 +44,12 @@ A key/value combination to allow you to specify if a column is a checkbox, decim
 Text fields will all work out of the box and should not be included here.<br />
 
 The key column specifies the CSV column name.<br />
-The value column specifies either the word "checkbox", "decimal", "number" or a specific date format.<br />
+The value column specifies either the word "checkbox", "decimal", "number", "Date", "Time", or "Datetime".<br />
+For the date, time and datetime option, you will need to specify how the item is formatted in your file. The notation is as follows:</br>
+Date, <format> or Time, <format>, or Datetime, <format>.</br></br>For example: "Date, dd-MM-yyyy" or "Date, MM/dd/yyyy".</br></br>
 We use the formats defined by the date-fns package and the specifications can be found here: https://date-fns.org/v2.16.1/docs/format<br />
 Make sure a mapping exists for each of your date columns in the CSV, otherwise the column will not be imported correctly.<br />
 See the limitations below for the supported patterns.
-
-example:
 
 ### DEDUPLICATE RECORDS (UPDATE RECORDS IF MATCHED):
 
