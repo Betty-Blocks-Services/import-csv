@@ -13,7 +13,7 @@ With the deduplication option you can prevent duplicate records based on a colum
 
 Specify an URL to your CSV file. This can be a static public reachable URL or a text variable from a file property of a record (you can use the expression step to retrieve the URL of a file property).<br />
 
-### Import file type
+### IMPORT FILE TYPE
 
 ![image](https://github.com/Betty-Services/import-csv/assets/96063344/6c460217-c271-409f-bfc3-d33bf1099057)
 
