@@ -146,7 +146,7 @@ const prepareImportLines = async (
           }
         }
       } else {
-        importObj[mapping.value] = importLineValue || null;
+        importObj[mapping.value] = importLineValue ?? null;
       }
     });
 
