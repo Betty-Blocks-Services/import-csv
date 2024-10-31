@@ -154,7 +154,7 @@ const prepareImportLines = async (
       const importLineValue = mapping.key.endsWith('*')
         ? importLine[mapping.key] || importLine[mapping.key.slice(0, -1)] // Remove the last character (the asterisk)
         : importLine[mapping.key];
-      updateObj[mapping.value] = importLineValue;
+      updateObj[mapping.value] = importLineValue ?? null;
     });
 
     if (deduplicate) {
