@@ -65,13 +65,12 @@ const formatImportLineValues = (
               const sanitizedDecimalValue = importLineValue
                 .toString()
                 .replace(",", ".");
-              if (!isNaN(parseFloat(sanitizedDecimalValue))) {
+              const parsedFloat = parseFloat(sanitizedDecimalValue);
+              if (!isNaN(parsedFloat)) {
                 if (sanitizedDecimalValue.indexOf(".") === -1)
                   importLine[mapping.key] = sanitizedDecimalValue + ".00";
                 else {
-                  importLine[mapping.key] = parseFloat(sanitizedDecimalValue)
-                    .toFixed(2)
-                    .toString();
+                  importLine[mapping.key] = parsedFloat.toFixed(2).toString();
                 }
               } else {
                 importLine[mapping.key] = "";
