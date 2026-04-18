@@ -44,7 +44,7 @@ const getImportLines = async (fileUrl, fileType, logging) => {
 const formatImportLineValues = (
   importLinesToSanitize,
   propertyMappings,
-  propertyMappingsFormat
+  propertyMappingsFormat,
 ) => {
   return importLinesToSanitize.map((importLine) => {
     // convert import values to database acceptable formats for text, decimal, number, date, date/time, time, decimal and checkbox properties
@@ -90,7 +90,7 @@ const formatImportLineValues = (
                 importLine[mapping.key] = convertToDBDateFormat(
                   importLineValue,
                   formatArray[1] ? formatArray[1] : 'dd-MM-yyyy',
-                  formatArray[0] ? formatArray[0] : 'Date'
+                  formatArray[0] ? formatArray[0] : 'Date',
                 );
               break;
           }
@@ -110,7 +110,7 @@ const prepareImportLines = async (
   propertyMappings,
   propertyMappingsUpdate,
   uniqueRecordIdentifier,
-  relationLookupData
+  relationLookupData,
 ) => {
   const recordsToCreate = [];
   const recordsToUpdate = [];
@@ -131,12 +131,12 @@ const prepareImportLines = async (
         : importLine[mapping.key];
       if (mapping.isRelation) {
         const relationalLookupData = relationLookupData.find(
-          (item) => item.relationImportName === mapping.key
+          (item) => item.relationImportName === mapping.key,
         );
         if (relationalLookupData) {
           const { records } = relationalLookupData;
           const relationObject = records.find(
-            (element) => element[mapping.value] == importLineValue
+            (element) => element[mapping.value] == importLineValue,
           );
 
           if (relationObject) {
@@ -162,7 +162,7 @@ const prepareImportLines = async (
         const existingRecord = existingRecords.find(
           (record) =>
             record[uniqueRecordIdentifier.value].toString() ===
-            importLine[uniqueRecordIdentifier.key].toString()
+            importLine[uniqueRecordIdentifier.key].toString(),
         );
         if (existingRecord) {
           if (propertyMappingsUpdate.length > 0) {
@@ -198,7 +198,9 @@ const prepareRelationMappings = (propertyMapping, formatMappings) => {
         mapping.relationImportName = mapping.key;
         mapping.value = propertyName;
         const mappingPropertyFormat = formatMappings.find(
-          (formatMap) => mapping.key === formatMap.key
+          (formatMap) =>
+            mapping.key === formatMap.key ||
+            mapping.key === formatMap.key.slice(0, -1), // Remove the last character (the asterisk)
         );
         if (mappingPropertyFormat) {
           mapping.relationPropertyType = mappingPropertyFormat.value
@@ -217,7 +219,6 @@ const prepareRelationMappings = (propertyMapping, formatMappings) => {
 
 const getWhere = (importLines, fileColumn, dbColumn, isDecimal) => {
   const uniqueValues = [];
-  let whereFilterData = '';
   importLines.forEach((item) => {
     if (item[fileColumn]) {
       if (!uniqueValues.includes(item[fileColumn]))
@@ -225,24 +226,16 @@ const getWhere = (importLines, fileColumn, dbColumn, isDecimal) => {
     }
   });
   if (isDecimal) {
-    uniqueValues.forEach((item) => {
-      const escaped = String(item).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      whereFilterData += `{ ${dbColumn}: { eq: \"${escaped}\" }},`;
-    });
-    return `{ _or: [${whereFilterData}] }`;
+    return { _or: uniqueValues.map((item) => ({ [dbColumn]: { eq: item } })) };
   } else {
-    uniqueValues.forEach((item) => {
-      const escaped = String(item).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      whereFilterData += `\"${escaped}\",`;
-    });
-    return `{ ${dbColumn}: { in: [${whereFilterData}] }}`;
+    return { [dbColumn]: { in: uniqueValues } };
   }
 };
 
 const getRelationLookupData = async (
   mainMappings,
   updateMappings,
-  importLines
+  importLines,
 ) => {
   const mappings = mainMappings.concat(updateMappings);
   const lookupData = [];
@@ -255,11 +248,11 @@ const getRelationLookupData = async (
         importLines,
         mapping.key,
         mapping.value,
-        isMappingDecimal
+        isMappingDecimal,
       );
 
       const gqlRelationQuery = `{
-        all${mapping.relationModelName}(skip: $skip, take: $take, where: ${whereFilter}) {
+        all${mapping.relationModelName}(skip: $skip, take: $take, where: $where) {
           results {
             id
             ${mapping.value}
@@ -268,7 +261,9 @@ const getRelationLookupData = async (
         }
       }`;
 
-      const returnedData = await getAll(gqlRelationQuery, 0, 200, []);
+      const returnedData = await getAll(gqlRelationQuery, 0, 200, [], {
+        where: whereFilter,
+      });
       lookupData.push({
         relationImportName: mapping.key,
         relationDBName: mapping.relationImportName,
@@ -294,7 +289,7 @@ const processImportLines = async (
   batchOffset,
   startTime,
   logging,
-  modelName
+  modelName,
 ) => {
   let allCurrentRecords = [];
   let loggingMessage = `Finished batch ${batchOffset + 1} (import lines: ${
@@ -304,13 +299,13 @@ const processImportLines = async (
   const formattedImportLines = formatImportLineValues(
     importLines,
     propertyMappings,
-    propertyMappingsFormat
+    propertyMappingsFormat,
   );
 
   const relationLookupData = await getRelationLookupData(
     propertyMappingMain,
     propertyMappingsUpdateSpecific,
-    formattedImportLines
+    formattedImportLines,
   );
 
   const relationLookupDataString = JSON.stringify(relationLookupData);
@@ -318,7 +313,7 @@ const processImportLines = async (
   if (logging && relationLookupDataString !== '[]') {
     console.log(
       'Relational lookup data (first 2000 characters): ' +
-        relationLookupDataString.substring(0, 2000)
+        relationLookupDataString.substring(0, 2000),
     );
   }
 
@@ -333,12 +328,12 @@ const processImportLines = async (
     uniqueRecordIdentifier = propertyMappings.find(
       (item) =>
         item.key.toString().toLowerCase().trim() ===
-        uniqueRecordColumnName.toString().toLowerCase().trim()
+        uniqueRecordColumnName.toString().toLowerCase().trim(),
     );
 
     if (uniqueRecordIdentifier === undefined)
       throwError(
-        'No unique identifier can be found in the mappings. Make sure you add the import column and property database name (in snake_case) in the mappings above!'
+        'No unique identifier can be found in the mappings. Make sure you add the import column and property database name (in snake_case) in the mappings above!',
       );
   }
 
@@ -347,11 +342,11 @@ const processImportLines = async (
       formattedImportLines,
       uniqueRecordColumnName,
       uniqueRecordIdentifier.value,
-      uniqueRecordColumnType === 'decimal'
+      uniqueRecordColumnType === 'decimal',
     );
 
     const gqlQuery = `{
-      all${modelName}(skip: $skip, take: $take, where: ${whereFilter}) {
+      all${modelName}(skip: $skip, take: $take, where: $where) {
         results {
           id
           ${propertiesDBNames.join(' ')}
@@ -360,7 +355,9 @@ const processImportLines = async (
       }
     }`;
 
-    allCurrentRecords = await getAll(gqlQuery, 0, 200, []);
+    allCurrentRecords = await getAll(gqlQuery, 0, 200, [], {
+      where: whereFilter,
+    });
   }
 
   const processedImportLines = await prepareImportLines(
@@ -372,7 +369,7 @@ const processImportLines = async (
     propertyMappingMain,
     propertyMappingsUpdateSpecific,
     uniqueRecordIdentifier,
-    relationLookupData
+    relationLookupData,
   );
   const { recordsToCreate, recordsToUpdate } = processedImportLines;
 
@@ -390,8 +387,8 @@ const processImportLines = async (
         `Collection to create: ${
           recordsToCreate.length
         } items (first 2000 characters): ${JSON.stringify(
-          recordsToCreate
-        ).substring(0, 2000)}`
+          recordsToCreate,
+        ).substring(0, 2000)}`,
       );
     }
 
@@ -403,7 +400,7 @@ const processImportLines = async (
 
     const { data: createdData, errors: createdErrors } = await gql(
       createQuery,
-      { input: sanitizedRecordsToCreate }
+      { input: sanitizedRecordsToCreate },
     );
 
     if (createdErrors) throwError(createdErrors);
@@ -420,8 +417,8 @@ const processImportLines = async (
         `Collection to update: ${
           recordsToUpdate.length
         } items (first 2000 characters): ${JSON.stringify(
-          recordsToUpdate
-        ).substring(0, 2000)}`
+          recordsToUpdate,
+        ).substring(0, 2000)}`,
       );
     }
     const updateQuery = `
@@ -434,7 +431,7 @@ const processImportLines = async (
 
     const { data: updatedData, errors: updatedErrors } = await gql(
       updateQuery,
-      { input: recordsToUpdate }
+      { input: recordsToUpdate },
     );
 
     if (updatedErrors) throwError(updatedErrors);
@@ -499,7 +496,7 @@ const importFile = async ({
 
     if (!batched && importLines.totalCount > 50000)
       throwError(
-        'The number of import lines is too large (more than 50000). Please split your import file into several smaller files.'
+        'The number of import lines is too large (more than 50000). Please split your import file into several smaller files.',
       );
 
     if (validateRequiredColumns) {
@@ -508,7 +505,7 @@ const importFile = async ({
       }
       if (importLines.length === 0) {
         throwError(
-          'There are no import lines found. The required column validation could not be done'
+          'There are no import lines found. The required column validation could not be done',
         );
       }
       const fileColumns = Object.keys(importLines[0]);
@@ -519,7 +516,7 @@ const importFile = async ({
       const missingValues = propertyMappingsRequiredKeys.filter(
         (requiredValue) =>
           !fileColumns.includes(requiredValue) &&
-          !fileColumns.includes(requiredValue.slice(0, -1)) // Remove the last character (the asterisk)
+          !fileColumns.includes(requiredValue.slice(0, -1)), // Remove the last character (the asterisk)
       );
 
       if (missingValues.length > 0) {
@@ -534,26 +531,26 @@ const importFile = async ({
 
     const propertyMappingMain = prepareRelationMappings(
       propertyMappings,
-      propertyMappingsFormat
+      propertyMappingsFormat,
     );
 
     if (logging) {
       console.log(
         'Main mappings (first 2000 characters): ' +
-          JSON.stringify(propertyMappingMain)
+          JSON.stringify(propertyMappingMain),
       );
     }
 
     const propertyMappingsUpdateSpecific = prepareRelationMappings(
-      propertyMappingsUpdate
+      propertyMappingsUpdate,
     );
     const propertyMappingsUpdateSpecificString = JSON.stringify(
-      propertyMappingsUpdateSpecific
+      propertyMappingsUpdateSpecific,
     );
     if (logging && propertyMappingsUpdateSpecificString !== '[]') {
       console.log(
         'Update specific mappings (first 2000 characters): ' +
-          propertyMappingsUpdateSpecificString.substring(0, 2000)
+          propertyMappingsUpdateSpecificString.substring(0, 2000),
       );
     }
 
@@ -562,7 +559,7 @@ const importFile = async ({
       importLinesToCreateInBatches = splitArray(importLines, batchSize);
       if (logging)
         console.log(
-          `Number of batches: ${importLinesToCreateInBatches.length} (batch size:  ${batchSize})`
+          `Number of batches: ${importLinesToCreateInBatches.length} (batch size:  ${batchSize})`,
         );
 
       const propertiesBatchDBNames = [];
@@ -574,7 +571,7 @@ const importFile = async ({
       let batchRecord = await getOne(
         batchModelName,
         propertiesBatchDBNames,
-        where
+        where,
       );
 
       if (batchRecord) {
@@ -583,7 +580,7 @@ const importFile = async ({
           console.log(
             `Existing batch record for this file found, continuing with batch: ${
               currentBatch + 1
-            }`
+            }`,
           );
       } else {
         const newBatchRecord = {};
@@ -592,7 +589,7 @@ const importFile = async ({
         newBatchRecord[batchSizePropertyName] = 0;
         const createdBatchRecord = await createOne(
           batchModelName,
-          newBatchRecord
+          newBatchRecord,
         );
         newBatchRecord.id = createdBatchRecord.id;
         batchRecord = newBatchRecord;
@@ -603,7 +600,7 @@ const importFile = async ({
           console.log(
             `Starting batch ${i + 1}: (import lines ${i * batchSize} to ${
               i * batchSize + importLinesToCreateInBatches[i].length
-            } )`
+            } )`,
           );
         }
 
@@ -622,7 +619,7 @@ const importFile = async ({
           i,
           now(),
           logging,
-          modelName
+          modelName,
         );
 
         if (result) {
@@ -653,7 +650,7 @@ const importFile = async ({
         0,
         now(),
         logging,
-        modelName
+        modelName,
       );
     }
     return {
