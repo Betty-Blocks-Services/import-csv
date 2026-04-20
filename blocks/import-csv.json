@@ -1,0 +1,5 @@
+{
+  "dependencies": ["lodash", "date-fns", "xlsx"],
+  "functions": ["importCsv 3.3"],
+  "includes": ["./functions/utils"]
+}
